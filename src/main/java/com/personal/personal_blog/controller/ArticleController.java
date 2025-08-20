@@ -72,4 +72,17 @@ public class ArticleController {
         //响应：200 OK
         return Result.success(200);
     }
+
+    //DELETE /{id}：删除文章
+    @DeleteMapping("/{id}")
+    public Result deleteArticle(@PathVariable Integer id) {
+        //删除文章
+        int affectedRows = articleService.deleteArticle(id);
+        //如果受影响的行数为0，说明文章不存在
+        if (affectedRows == 0) {
+            return Result.error("删除失败");
+        }
+        //响应：200 OK
+        return Result.success(200);
+    }
 }

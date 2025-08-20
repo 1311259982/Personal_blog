@@ -12,4 +12,6 @@ public interface ArticleService {
     Post getArticleDetail(Integer id);
 
     int updateArticle(Integer id, Post post);
+
+    int deleteArticle(Integer id);
 }
