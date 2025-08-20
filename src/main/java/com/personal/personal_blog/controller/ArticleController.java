@@ -3,11 +3,13 @@ package com.personal.personal_blog.controller;
 import com.personal.personal_blog.entity.Post;
 import com.personal.personal_blog.entity.Result;
 import com.personal.personal_blog.service.ArticleService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+@Slf4j
 @RestController
 @RequestMapping("/api/posts")
 public class ArticleController {
@@ -49,5 +51,25 @@ public class ArticleController {
         }
         //响应：200 OK
         return Result.success(post);
+    }
+
+    //PUT /{id}：更新文章
+    @PutMapping("/{id}")
+    //请求体：{ "title": "...", "content": "...", "isPublished": false }
+    public Result updateArticle(@PathVariable Integer id, @RequestBody Post post) {
+        //更新文新
+        log.info("更新文章，id={}, post={}", id, post);
+        int affectedRows = articleService.updateArticle(id, post);
+        //如果文章不存在，返回404 Not Found
+        Post  exist = articleService.getArticleDetail(id);
+        if (exist == null) {
+            return Result.error("文章不存在");
+        }
+        //如果受影响的行数为0，说明文章不存在
+        if (affectedRows == 0) {
+            return Result.error("更新失败");
+        }
+        //响应：200 OK
+        return Result.success(200);
     }
 }

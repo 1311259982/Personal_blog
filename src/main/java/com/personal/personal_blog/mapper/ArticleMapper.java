@@ -1,10 +1,10 @@
 package com.personal.personal_blog.mapper;
 
 import com.personal.personal_blog.entity.Post;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 
@@ -40,4 +40,12 @@ public interface ArticleMapper {
 
     @Select("select id, user_id, title, content, slug, views, is_published, created_at, updated_at from post where id = #{id} ")
     Post getArticle(Integer id);
+
+    
+    // 更新文章
+    @Update("<script>" +
+            "update post set title = #{title}, content = #{content}, slug = #{slug}, is_published = #{isPublished}, updated_at = #{updatedAt} where id = #{id}" +
+            "</script>")
+    int updateArticle(Post post);//返回受影响的行数，表示更新成功或失败
+    
 }

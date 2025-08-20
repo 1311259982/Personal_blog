@@ -3,6 +3,7 @@ package com.personal.personal_blog.service.impl;
 import com.personal.personal_blog.entity.Post;
 import com.personal.personal_blog.mapper.ArticleMapper;
 import com.personal.personal_blog.service.ArticleService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,6 +12,8 @@ import java.util.Date;
 import net.sourceforge.pinyin4j.PinyinHelper;
 import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat;
 import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
+//import com.personal.personal_blog.exception.ArticleNotFoundException;
+@Slf4j
 @Service
 public class ArticleServiceImpl implements ArticleService {
 
@@ -67,5 +70,21 @@ public class ArticleServiceImpl implements ArticleService {
     @Override
     public Post getArticleDetail(Integer id) {
         return articleMapper.getArticle(id);
+    }
+
+    @Override
+    public int updateArticle(Integer id, Post post)  {
+        if (post == null) {
+            throw new IllegalArgumentException("文章内容不能为空");
+        }
+        //更新文章并获取受影响的行数，添加更新时间，更新slug
+        post.setId(Long.valueOf(id));
+        post.setSlug(generateSlug(post.getTitle()));
+        post.setUpdatedAt(new Date());
+
+
+       return articleMapper.updateArticle(post);
+        //如果受影响的行数为0，说明文章不存在
+
     }
 }

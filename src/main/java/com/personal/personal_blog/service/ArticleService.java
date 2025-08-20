@@ -10,4 +10,6 @@ public interface ArticleService {
     List<Post> getArticleList(Integer page, Integer size, String sort, Integer categoryId, String tagName);
 
     Post getArticleDetail(Integer id);
+
+    int updateArticle(Integer id, Post post);
 }
