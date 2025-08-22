@@ -87,4 +87,9 @@ public class ArticleServiceImpl implements ArticleService {
         //如果受影响的行数为0，说明文章不存在
 
     }
+
+    @Override
+    public int deleteArticle(Integer id) {
+        return articleMapper.deleteArticle(id);
+    }
 }

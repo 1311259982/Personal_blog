@@ -1,10 +1,7 @@
 package com.personal.personal_blog.mapper;
 
 import com.personal.personal_blog.entity.Post;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
@@ -47,5 +44,8 @@ public interface ArticleMapper {
             "update post set title = #{title}, content = #{content}, slug = #{slug}, is_published = #{isPublished}, updated_at = #{updatedAt} where id = #{id}" +
             "</script>")
     int updateArticle(Post post);//返回受影响的行数，表示更新成功或失败
-    
+
+    // 删除文章
+    @Delete("delete from post where id = #{id}")
+    int deleteArticle(Integer id);
 }
