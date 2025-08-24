@@ -1,6 +1,7 @@
 package com.personal.personal_blog.controller;
 
 
+import com.personal.personal_blog.entity.LoginInfo;
 import com.personal.personal_blog.entity.Post;
 import com.personal.personal_blog.entity.Result;
 import com.personal.personal_blog.entity.User;
@@ -29,11 +30,11 @@ public class AuthController {
     }
     @PostMapping("/login")
     public Result login(@RequestBody User user) {
-        User userInfo = userService.login(user);
-        if (userInfo == null) {
+        LoginInfo loginInfo = userService.login(user);
+        if (loginInfo == null) {
             return Result.error("登录失败");
         }
-        return Result.success(userInfo);
+        return Result.success(loginInfo);
     }
 
 

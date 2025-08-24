@@ -1,5 +1,6 @@
 package com.personal.personal_blog.service;
 
+import com.personal.personal_blog.entity.LoginInfo;
 import com.personal.personal_blog.entity.Post;
 import com.personal.personal_blog.entity.User;
 
@@ -11,7 +12,7 @@ public interface UserService {
 
     Boolean checkEmail(String email);
 
-    User login(User user);
+    LoginInfo login(User user);
 
 
 }

@@ -1,5 +1,6 @@
 package com.personal.personal_blog.mapper;
 
+import com.personal.personal_blog.entity.LoginInfo;
 import com.personal.personal_blog.entity.Post;
 import com.personal.personal_blog.entity.User;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,6 @@ public interface UserMapper {
     void insertUser(User user);
 
     @Select("SELECT id, username, email, role FROM user WHERE username = #{username} or email=#{email} AND password = #{password}")
-    User getUserInfo(User user);
+    LoginInfo getUserInfo(User user);
 
 }
