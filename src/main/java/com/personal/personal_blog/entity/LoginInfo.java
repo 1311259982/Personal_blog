@@ -1,16 +1,17 @@
 package com.personal.personal_blog.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 @Data
-public class LoginInfo extends User {
-    private String username;
-    private String email;
-    private String role;
+@AllArgsConstructor
+@NoArgsConstructor
+public class LoginInfo {
     private Long id;
+    private String username;
+    private String role;
     private String token;
 
-    public LoginInfo(Long id, String username, String email, String role, String jwtToken) {
-    }
 }

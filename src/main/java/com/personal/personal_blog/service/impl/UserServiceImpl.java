@@ -33,16 +33,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public LoginInfo login(User user) {
-
-        User u = userMapper.getUserInfo(user);
+        LoginInfo u = userMapper.getUserInfo(user);
         if(u!=null){
             Map<String,Object> claims = new HashMap<>();
-            claims.put("username",user.getUsername());
-            claims.put("email",user.getEmail());
-            claims.put("role",user.getRole());
-            claims.put("id",user.getId());
+            claims.put("username",u.getUsername());
+            claims.put("role",u.getRole());
+            claims.put("id",u.getId());
             String jwtToken = JwtUtil.generateToken(claims);// 生成token
-            return new LoginInfo(u.getId(),u.getUsername(),u.getEmail(),u.getRole(),jwtToken);
+            return new LoginInfo(u.getId(),u.getUsername(),u.getRole(),jwtToken);
         }
         return null;
     }

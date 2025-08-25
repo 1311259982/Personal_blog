@@ -19,7 +19,7 @@ public interface UserMapper {
     @Insert("INSERT INTO user (username, password, email, role) VALUES (#{username}, #{password}, #{email}, #{role})")
     void insertUser(User user);
 
-    @Select("SELECT id, username, email, role FROM user WHERE username = #{username} or email=#{email} AND password = #{password}")
+    @Select("SELECT id, username,role FROM user WHERE username = #{username} or email=#{email} AND password = #{password}")
     LoginInfo getUserInfo(User user);
 
 }

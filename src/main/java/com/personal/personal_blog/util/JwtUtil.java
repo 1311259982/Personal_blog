@@ -13,7 +13,7 @@ public class JwtUtil {
     public static String generateToken(Map<String,Object> claims){
         return Jwts.builder()
                 .claims(claims)
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
+                .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(jwtKey)
                 .compact();
     }
