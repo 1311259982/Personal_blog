@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class JwtUtil {
     private static final SecretKey jwtKey = Jwts.SIG.HS256.key().build();
-    private static final long jwtExpiration = 1000 * 60 * 60 * 24;
+    private static final long jwtExpiration = 1000 * 60 * 60 * 24;//24小时
     public static String generateToken(Map<String,Object> claims){
         return Jwts.builder()
                 .claims(claims)
