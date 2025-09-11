@@ -1,49 +1,69 @@
 package com.personal.personal_blog.component;
 
+import com.personal.personal_blog.entity.User;
+import com.personal.personal_blog.service.impl.UserDetailsServiceImpl;
 import com.personal.personal_blog.util.JwtUtil;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 @Slf4j
-@WebFilter(urlPatterns = "/api/*")
-public class JwtAuthenticationFilter implements Filter {
+@Component // 声明为 Spring Bean
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    @Autowired
+    private UserDetailsServiceImpl userDetailsService;
 
     @Override
-    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-        //登录放行
-        if ("/api/auth/login".equals(((HttpServletRequest) servletRequest).getRequestURI())) {
-            filterChain.doFilter(servletRequest, servletResponse);
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
+        final String authHeader = request.getHeader("Authorization");
+        final String jwt;
+        final String userEmail;
+
+        // 如果请求头为空或不是以 "Bearer " 开头，直接放行
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
             return;
         }
-        // 除登录外其余请求从请求头中获取token
-        log.debug("获取token");
-        String token = ((HttpServletRequest) servletRequest).getHeader("Authorization");
-        //判断token是否存在，如果不存在，说明没有登录，返回错误信息403
-        if (token == null || !token.startsWith("Bearer ")) {//如果token不存在或者不是以Bearer开头，说明没有登录，返回错误信息403
-            ((HttpServletResponse) servletResponse).sendError(HttpServletResponse.SC_FORBIDDEN, "未登录");
-            return;
-        }
-        //如果存在，校验令牌，如果校验失败返回错误信息401
-        log.debug("校验token");
-        String jwt = token.substring(7);
+
+        jwt = authHeader.substring(7);
         try {
-            JwtUtil.parseToken(jwt);
-            //如果校验成功，将用户信息放入请求头
-            servletRequest.setAttribute("user", JwtUtil.parseToken(jwt).getSubject());
-            //如果校验成功，将用户角色放入请求头
-            servletRequest.setAttribute("role", JwtUtil.parseToken(jwt).get("role").toString());
+            Claims claims = JwtUtil.parseToken(jwt);
+            // 假设你在生成 JWT 时，将用户的 email 存入了 subject
+            userEmail = claims.getSubject();
+
+            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                // **核心改动在这里！**
+                // 委托 UserDetailsService 从数据库加载完整的 UserDetails
+                UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+
+                // 创建认证令牌
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
+
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+            }
         } catch (Exception e) {
-            ((HttpServletResponse) servletResponse).sendError(HttpServletResponse.SC_UNAUTHORIZED, "令牌校验失败");
-            return;
+            // Token 解析失败，可以在这里处理异常，例如记录日志
+            // 但我们不中断过滤器链，让后续的安全机制处理未认证的请求
         }
-        //如果校验成功，放行，继续执行后续过滤器
-        filterChain.doFilter(servletRequest, servletResponse);
+
+        filterChain.doFilter(request, response);
     }
-
-
 }

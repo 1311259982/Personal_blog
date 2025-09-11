@@ -7,6 +7,8 @@ import com.personal.personal_blog.mapper.UserMapper;
 import com.personal.personal_blog.service.UserService;
 import com.personal.personal_blog.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -19,9 +21,15 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private UserMapper userMapper;
 
+    //注入密码编辑器
+    @Autowired
+    private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
 
     @Override
     public void register(User user) {
+        //对密码进行处理
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userMapper.insertUser(user);
 
     }
@@ -31,18 +39,32 @@ public class UserServiceImpl implements UserService {
         return userMapper.findByEmail(email) != null;
     }
 
+    // src/main/java/com/personal/personal_blog/service/impl/UserServiceImpl.java
+
     @Override
     public LoginInfo login(User user) {
-        LoginInfo u = userMapper.getUserInfo(user);
-        if(u!=null){
-            Map<String,Object> claims = new HashMap<>();
-            claims.put("username",u.getUsername());
-            claims.put("role",u.getRole());
-            claims.put("id",u.getId());
-            String jwtToken = JwtUtil.generateToken(claims);// 生成token
-            return new LoginInfo(u.getId(),u.getUsername(),u.getRole(),jwtToken);
+        // 1. 根据 email 查询用户
+        User dbUser = userMapper.findByEmail(user.getEmail());
+        if (dbUser == null) {
+            return null; // 用户不存在
         }
-        return null;
+
+        // 2. 验证密码 (重要！)
+        if (!passwordEncoder.matches(user.getPassword(), dbUser.getPassword())) {
+            return null; // 密码错误
+        }
+
+        // 3. 密码正确，生成 Token
+        Map<String,Object> claims = new HashMap<>();
+        claims.put("username", dbUser.getUsername());
+        claims.put("role", dbUser.getRole());
+        claims.put("id", dbUser.getId());
+
+        // 将 dbUser 的 email 作为 subject 传入
+        String jwtToken = JwtUtil.generateToken(claims, dbUser.getEmail());
+        //String jwtToken = JwtUtil.generateToken(claims);
+
+        return new LoginInfo(dbUser.getId(), dbUser.getUsername(), dbUser.getRole(), jwtToken);
     }
 
 
