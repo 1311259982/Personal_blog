@@ -28,10 +28,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void register(User user) {
-        //对密码进行处理
+        // 【再次确认】确保这段逻辑存在
+        if (user.getRole() == null || user.getRole().isEmpty()) {
+            user.setRole("USER"); // 默认为普通用户
+        }
+        // 对密码进行处理
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userMapper.insertUser(user);
-
     }
 
     @Override

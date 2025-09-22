@@ -57,20 +57,21 @@ public class ArticleController {
     @PutMapping("/{id}")
     //请求体：{ "title": "...", "content": "...", "isPublished": false }
     public Result updateArticle(@PathVariable Integer id, @RequestBody Post post) {
-        //更新文新
-        log.info("更新文章，id={}, post={}", id, post);
-        int affectedRows = articleService.updateArticle(id, post);
-        //如果文章不存在，返回404 Not Found
-        Post  exist = articleService.getArticleDetail(id);
-        if (exist == null) {
+        // 1. 先检查文章是否存在
+        Post existingPost = articleService.getArticleDetail(id);
+        if (existingPost == null) {
             return Result.error("文章不存在");
         }
-        //如果受影响的行数为0，说明文章不存在
+
+        // 2. 执行更新
+        log.info("更新文章，id={}, post={}", id, post);
+        int affectedRows = articleService.updateArticle(id, post);
+
+        // 3. 根据更新结果返回
         if (affectedRows == 0) {
             return Result.error("更新失败");
         }
-        //响应：200 OK
-        return Result.success(200);
+        return Result.success(); // 建议返回更新后的对象或成功状态
     }
 
     //DELETE /{id}：删除文章

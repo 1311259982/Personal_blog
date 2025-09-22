@@ -28,6 +28,11 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        // 增加对 role 的 null 和空字符串检查
+        if (this.role == null || this.role.isEmpty()) {
+            // 如果角色为空，返回一个空的权限列表
+            return Collections.emptyList();
+        }
         // 返回用户的权限集合。这里我们将 role 字符串转换为权限对象。
         // Spring Security 的权限控制是基于 GrantedAuthority 的。
         // 我们需要给角色字符串加上 "ROLE_" 前缀，这是 Spring Security 的约定。
