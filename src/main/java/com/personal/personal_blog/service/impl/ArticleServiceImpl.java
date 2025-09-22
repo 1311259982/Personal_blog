@@ -1,10 +1,12 @@
 package com.personal.personal_blog.service.impl;
 
 import com.personal.personal_blog.entity.Post;
+import com.personal.personal_blog.entity.User;
 import com.personal.personal_blog.mapper.ArticleMapper;
 import com.personal.personal_blog.service.ArticleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,7 +25,14 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     public void putArticle(List<Post> postList) {
+        // 从安全上下文中获取当前登录的用户信息
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long currentUserId = currentUser.getId();
+
         for (Post post : postList) {
+            // 强制将文章的userId设置为当前登录用户的id
+            post.setUserId(currentUserId);
+
             post.setIsPublished(true);
             post.setSlug(generateSlug(post.getTitle()));
             post.setCreatedAt(new Date());
@@ -31,7 +40,7 @@ public class ArticleServiceImpl implements ArticleService {
         }
         articleMapper.insertBatch(postList);
     }
-
+    // 生成文章的slug
     private String generateSlug(String title) {
         if (title == null || title.isEmpty()) {
             return "";

@@ -49,7 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // **核心改动在这里！**
                 // 委托 UserDetailsService 从数据库加载完整的 UserDetails
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-
+                log.info("Attempting to authenticate user: '{}', Authorities found: {}", userEmail, userDetails.getAuthorities());
                 // 创建认证令牌
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
@@ -61,9 +61,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (Exception e) {
             // Token 解析失败，可以在这里处理异常，例如记录日志
+            log.error("JWT token parsing failed: {}", e.getMessage());
             // 但我们不中断过滤器链，让后续的安全机制处理未认证的请求
-        }
 
+        }
+        // 继续处理请求
         filterChain.doFilter(request, response);
     }
 }
