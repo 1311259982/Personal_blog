@@ -22,24 +22,22 @@ public class AuthController {
 
     @PostMapping("/register")
     public Result register(@RequestBody User user) {
-        if (userService.checkEmail(user.getEmail())) {
-            return Result.error("邮箱已被注册");
+        try {
+            userService.register(user);
+            return Result.success();
+        } catch (RuntimeException e) {
+            // 捕获Service层抛出的异常，并将其信息返回给前端
+            return Result.error(e.getMessage());
         }
-        userService.register(user);
-        return Result.success();
     }
     @PostMapping("/login")
     public Result login(@RequestBody User user) {
         LoginInfo loginInfo = userService.login(user);
         if (loginInfo == null) {
-            return Result.error("登录失败");
+            return Result.error("登录失败，请检查您的用户名/邮箱或密码");
         }
         return Result.success(loginInfo);
     }
 
 
 }
-
-
-
-

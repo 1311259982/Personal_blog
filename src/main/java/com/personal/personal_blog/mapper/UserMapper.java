@@ -16,10 +16,13 @@ public interface UserMapper {
     @Select("SELECT id, username, password, email, role, created_at, updated_at FROM user WHERE email = #{email}")
     User findByEmail(String email);
 
-    @Insert("INSERT INTO user (username, password, email, role) VALUES (#{username}, #{password}, #{email}, #{role})")
+    @Select("SELECT id, username, password, email, role, created_at, updated_at FROM user WHERE username = #{username}")
+    User findByUsername(String username);
+
+    @Insert("INSERT INTO user (username, password, email, role, created_at) VALUES (#{username}, #{password}, #{email}, #{role}, #{createdAt})")
     void insertUser(User user);
 
-    @Select("SELECT id, username,role FROM user WHERE (username = #{username} OR email = #{email}) AND password = #{password}")
-    LoginInfo getUserInfo(User user);
+//    @Select("SELECT id, username,role FROM user WHERE (username = #{username} OR email = #{email}) AND password = #{password}")
+//    LoginInfo getUserInfo(User user);
 
 }

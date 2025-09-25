@@ -12,6 +12,8 @@ public interface UserService {
 
     Boolean checkEmail(String email);
 
+    Boolean checkUsername(String username);
+
     LoginInfo login(User user);
 
 
