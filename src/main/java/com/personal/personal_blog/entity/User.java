@@ -48,7 +48,7 @@ public class User implements UserDetails {
     @Override
     public String getUsername() {
         // 返回用于登录的用户名，这里我们使用 email
-        return this.email;
+        return this.username;
     }
 
     @Override

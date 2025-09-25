@@ -33,11 +33,27 @@ public class UserServiceImpl implements UserService {
         if (checkEmail(user.getEmail())) {
             throw new RuntimeException("邮箱已被注册");
         }
+
+        // 新增：添加参数验证，确保用户名和邮箱不为空
+        if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
+            throw new RuntimeException("用户名不能为空");
+        }
+        if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
+            throw new RuntimeException("邮箱不能为空");
+        }
+
         if (user.getRole() == null || user.getRole().isEmpty()) { // 3. 设置默认角色
             user.setRole("USER"); // 默认为普通用户
         }
+
+        // 确认创建时间正确设置
         user.setCreatedAt(new Date());
+        // 确认密码加密正确
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        // 调试信息：添加日志输出，确认保存前的用户信息
+        System.out.println("注册用户信息 - 用户名: " + user.getUsername() + ", 邮箱: " + user.getEmail() + ", 创建时间: " + user.getCreatedAt());
+
         userMapper.insertUser(user);
     }
 
