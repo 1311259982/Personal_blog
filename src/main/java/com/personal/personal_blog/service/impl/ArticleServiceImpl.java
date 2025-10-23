@@ -6,11 +6,14 @@ import com.personal.personal_blog.mapper.ArticleMapper;
 import com.personal.personal_blog.service.ArticleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Date;
+import java.util.Objects;
+import java.util.UUID;
 import net.sourceforge.pinyin4j.PinyinHelper;
 import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat;
 import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
@@ -33,7 +36,9 @@ public class ArticleServiceImpl implements ArticleService {
             // 强制将文章的userId设置为当前登录用户的id
             post.setUserId(currentUserId);
 
-            post.setIsPublished(true);
+            if (post.getIsPublished() == null) {
+                post.setIsPublished(false); // 默认为草稿
+            }
             post.setSlug(generateSlug(post.getTitle()));
             post.setCreatedAt(new Date());
             post.setUpdatedAt(new Date());
@@ -61,11 +66,16 @@ public class ArticleServiceImpl implements ArticleService {
             }
         }
         // 生成slug
-        return pinyin.toString().toLowerCase()
+        String baseSlug = pinyin.toString().toLowerCase()
             .replaceAll("[^a-z0-9\\s-]", "")
             .replaceAll("\\s+", "-")
             .replaceAll("-+", "-")
             .replaceAll("^-|-$", "");
+
+        // 添加一个唯一的后缀来避免冲突
+        String uniqueSuffix = UUID.randomUUID().toString().substring(0, 6);
+
+        return baseSlug + "-" + uniqueSuffix;
     }
 
 
@@ -73,6 +83,13 @@ public class ArticleServiceImpl implements ArticleService {
     public List<Post> getArticleList(Integer page, Integer size, String sort, Integer categoryId, String tagName) {
         //查询文章列表
         return articleMapper.getArticleList(page, size, sort, categoryId, tagName);
+    }
+
+    @Override
+    public List<Post> getMyArticles(Boolean isPublished) {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long currentUserId = currentUser.getId();
+        return articleMapper.findArticlesByUserId(currentUserId, isPublished);
     }
 
 
@@ -86,19 +103,51 @@ public class ArticleServiceImpl implements ArticleService {
         if (post == null) {
             throw new IllegalArgumentException("文章内容不能为空");
         }
-        //更新文章并获取受影响的行数，添加更新时间，更新slug
+
+        Post existingPost = articleMapper.getArticle(id);
+        if (existingPost == null) {
+            // 也可以抛出自定义的 ArticleNotFoundException 异常
+            return 0;
+        }
+
         post.setId(Long.valueOf(id));
-        post.setSlug(generateSlug(post.getTitle()));
+
+        // 仅当标题确实发生更改时才更新slug
+        if (post.getTitle() != null && !post.getTitle().equals(existingPost.getTitle())) {
+            post.setSlug(generateSlug(post.getTitle()));
+        } else {
+            // 否则，保留旧的slug
+            post.setSlug(existingPost.getSlug());
+        }
+
         post.setUpdatedAt(new Date());
 
-
        return articleMapper.updateArticle(post);
-        //如果受影响的行数为0，说明文章不存在
-
     }
 
     @Override
     public int deleteArticle(Integer id) {
         return articleMapper.deleteArticle(id);
+    }
+
+    @Override
+    public int publishArticle(Integer id) {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Long currentUserId = currentUser.getId();
+
+        Post existingPost = articleMapper.getArticle(id);
+        if (existingPost == null) {
+            // 抛出异常或返回错误代码，表示文章不存在
+            throw new RuntimeException("文章不存在");
+        }
+
+        // 检查当前用户是否是文章的作者
+        if (!Objects.equals(existingPost.getUserId(), currentUserId)) {
+            // 抛出权限不足的异常
+            throw new AccessDeniedException("您没有权限发布此文章");
+        }
+
+        // 调用Mapper更新发布状态
+        return articleMapper.setPublishedStatus(id, true);
     }
 }

@@ -1,293 +1,185 @@
-# API Documentation
+# **个人博客 API 文档**
 
-## Article Controller (`/api/posts`)
+## **通用响应格式**
 
-### 1. Create Articles
+所有 API 接口都遵循统一的响应结构：
 
--   **Endpoint**: `POST /api/posts`
--   **Description**: Creates one or more new articles.
--   **Request Body**:
-    ```json
-    [
-      {
-        "title": "string",
-        "content": "string",
-        "slug": "string",
-        "isPublished": "boolean"
-        // other Post fields as applicable, userId will likely be set by backend
-      }
-    ]
-    ```
-    (List of `Post` objects)
--   **Responses**:
-    -   `201 Created`: Successfully created the article(s).
-        ```json
-        {
-          "code": 201,
-          "message": "success",
-          "data": null
-        }
-        ```
+```json
+{
+  "code": 200,
+  "msg": "success",
+  "data": {}
+}
+```
 
-### 2. Get Article List
+-   `code`: 状态码，`200` 表示成功，其他值表示失败。
+-   `msg`: 响应消息，通常为 "success" 或错误信息。
+-   `data`: 实际返回的数据，可以是对象、数组或 `null`。
 
--   **Endpoint**: `GET /api/posts`
--   **Description**: Retrieves a paginated list of articles, with optional filtering by category or tag.
--   **Query Parameters**:
-    -   `page` (Integer, optional): Page number (default: `0`)
-    -   `size` (Integer, optional): Number of items per page (default: `10`)
-    -   `sort` (String, optional): Sorting criteria (e.g., `createdAt,desc`, `title,asc`) (default: `createdAt,desc`)
-    -   `categoryId` (Integer, optional): Filter by category ID.
-    -   `tagName` (String, optional): Filter by tag name.
--   **Responses**:
-    -   `200 OK`: Successfully retrieved the article list.
-        ```json
-        {
-          "code": 200,
-          "message": "success",
-          "data": [
-            {
-              "id": 1,
-              "userId": 1,
-              "title": "Article Title 1",
-              "content": "Article Content 1",
-              "slug": "article-title-1",
-              "views": 100,
-              "isPublished": true,
-              "createdAt": "2023-01-01T10:00:00",
-              "updatedAt": "2023-01-01T10:00:00"
-            },
-            // ... more Post objects
-          ]
-        }
-        ```
+---
 
-### 3. Get Article Detail
+## **1. 认证模块 (`/api/auth`)**
 
--   **Endpoint**: `GET /api/posts/{id}`
--   **Description**: Retrieves the details of a single article by its ID.
--   **Path Parameters**:
-    -   `id` (Integer, required): The ID of the article.
--   **Responses**:
-    -   `200 OK`: Successfully retrieved the article details.
-        ```json
-        {
-          "code": 200,
-          "message": "success",
-          "data": {
-            "id": 1,
-            "userId": 1,
-            "title": "Article Title 1",
-            "content": "Article Content 1",
-            "slug": "article-title-1",
-            "views": 100,
-            "isPublished": true,
-            "createdAt": "2023-01-01T10:00:00",
-            "updatedAt": "2023-01-01T10:00:00"
-          }
-        }
-        ```
-    -   `400 Bad Request`: Article not found.
-        ```json
-        {
-          "code": 400,
-          "message": "文章不存在",
-          "data": null
-        }
-        ```
+### **1.1 用户注册**
 
-### 4. Update Article
+-   **功能**: 创建一个新用户账户。
+-   **URL**: `/api/auth/register`
+-   **方法**: `POST`
+-   **请求体**:
 
--   **Endpoint**: `PUT /api/posts/{id}`
--   **Description**: Updates an existing article by its ID.
--   **Path Parameters**:
-    -   `id` (Integer, required): The ID of the article to update.
--   **Request Body**:
     ```json
     {
-      "title": "string",
-      "content": "string",
-      "isPublished": "boolean"
-      // Only fields to be updated are required
-    }
-    ```
-    (`Post` object with fields to update)
--   **Responses**:
-    -   `200 OK`: Successfully updated the article.
-        ```json
-        {
-          "code": 200,
-          "message": "success",
-          "data": null // or updated Post object
-        }
-        ```
-    -   `400 Bad Request`: Article not found or update failed.
-        ```json
-        {
-          "code": 400,
-          "message": "文章不存在", // or "更新失败"
-          "data": null
-        }
-        ```
-
-### 5. Delete Article
-
--   **Endpoint**: `DELETE /api/posts/{id}`
--   **Description**: Deletes an article by its ID.
--   **Path Parameters**:
-    -   `id` (Integer, required): The ID of the article to delete.
--   **Responses**:
-    -   `200 OK`: Successfully deleted the article.
-        ```json
-        {
-          "code": 200,
-          "message": "success",
-          "data": null
-        }
-        ```
-    -   `400 Bad Request`: Deletion failed (e.g., article not found).
-        ```json
-        {
-          "code": 400,
-          "message": "删除失败",
-          "data": null
-        }
-        ```
-
-## Auth Controller (`/api/auth`)
-
-### 1. Register User
-
--   **Endpoint**: `POST /api/auth/register`
--   **Description**: Registers a new user.
--   **Request Body**:
-    ```json
-    {
-      "username": "string",
-      "password": "string",
+      "username": "your_username",
       "email": "user@example.com",
+      "password": "your_password",
       "role": "USER"
     }
     ```
-    (`User` object)
--   **Responses**:
-    -   `200 OK`: User registered successfully.
-        ```json
-        {
-          "code": 200,
-          "message": "success",
-          "data": null
-        }
-        ```
-    -   `400 Bad Request`: Email already registered.
-        ```json
-        {
-          "code": 400,
-          "message": "邮箱已被注册",
-          "data": null
-        }
-        ```
 
-### 2. Login User
+### **1.2 用户登录**
 
--   **Endpoint**: `POST /api/auth/login`
--   **Description**: Authenticates a user and returns login information.
--   **Request Body**:
+-   **功能**: 用户登录并获取认证 Token。
+-   **URL**: `/api/auth/login`
+-   **方法**: `POST`
+-   **请求体**:
+
     ```json
     {
       "email": "user@example.com",
-      "password": "string"
+      "password": "your_password"
     }
     ```
-    (`User` object with email and password)
--   **Responses**:
-    -   `200 OK`: Login successful.
-        ```json
-        {
-          "code": 200,
-          "message": "success",
-          "data": {
-            "token": "jwt_token_string",
-            "userId": 1,
-            "username": "string",
-            "email": "user@example.com",
-            "role": "USER"
-          }
-        }
-        ```
-    -   `400 Bad Request`: Login failed (e.g., invalid credentials).
-        ```json
-        {
-          "code": 400,
-          "message": "登录失败",
-          "data": null
-        }
-        ```
 
-## Comments Controller (`/api/comments`)
+---
 
-### 1. Create a Comment
+## **2. 文章模块 (`/api/posts`)**
 
--   **Endpoint**: `POST /api/comments`
--   **Description**: Creates a new comment for a post.
--   **Request Body**:
+*注意：除公共列表和详情接口外，其他接口均需要有效的 `Authorization: Bearer <token>` 请求头。*
+
+### **2.1 创建文章**
+
+-   **功能**: 创建一篇或多篇文章（支持批量创建）。
+-   **URL**: `/api/posts`
+-   **方法**: `POST`
+-   **请求体**: `List<Post>`
+
+    ```json
+    [
+      {
+        "title": "我的第一篇文章",
+        "content": "这是文章内容...",
+        "isPublished": false
+      }
+    ]
+    ```
+
+    -   `isPublished`: `true` 表示直接发布，`false` 或 `null` 表示保存为草稿。
+
+### **2.2 获取文章列表（公开）**
+
+-   **功能**: 分页获取**已发布**的文章列表。
+-   **URL**: `/api/posts`
+-   **方法**: `GET`
+-   **查询参数**:
+    -   `page` (可选, 默认 `0`): 页码。
+    -   `size` (可选, 默认 `10`): 每页数量。
+    -   `sort` (可选, 默认 `createdAt,desc`): 排序字段和方向。
+    -   `categoryId` (可选): 分类 ID。
+    -   `tagName` (可选): 标签名称。
+
+### **2.3 获取当前用户的文章（草稿箱/我的文章）**
+
+-   **功能**: 获取当前登录用户的所有文章，可根据发布状态筛选。
+-   **URL**: `/api/posts/my`
+-   **方法**: `GET`
+-   **查询参数**:
+    -   `isPublished` (可选, 布尔类型): 根据发布状态筛选文章。
+        -   `true`: 只返回已发布的文章。
+        -   `false`: 只返回草稿状态的文章（用于草稿箱）。
+        -   如果此参数省略，则返回所有文章。
+
+### **2.4 获取单篇文章详情**
+
+-   **功能**: 根据 ID 获取单篇文章的详细内容。
+-   **URL**: `/api/posts/{id}`
+-   **方法**: `GET`
+
+### **2.5 更新文章**
+
+-   **功能**: 根据 ID 更新一篇文章的完整内容。
+-   **URL**: `/api/posts/{id}`
+-   **方法**: `PUT`
+-   **请求体**:
+
     ```json
     {
-      "postId": 1,
-      "userId": 1,
-      "content": "This is a comment.",
-      "parentId": null
+      "title": "更新后的标题",
+      "content": "更新后的内容...",
+      "isPublished": false
     }
     ```
-    (`Comment` object)
--   **Responses**:
-    -   `200 OK`: Comment created successfully.
-        ```json
-        {
-          "code": 200,
-          "message": "success",
-          "data": null
-        }
-        ```
-    -   `400 Bad Request`: Failed to create the comment.
-        ```json
-        {
-          "code": 400,
-          "message": "评论失败",
-          "data": null
-        }
-        ```
 
-### 2. Get Comments by Post ID
+### **2.6 发布草稿**
 
--   **Endpoint**: `GET /api/comments/by-post/{postId}`
--   **Description**: Retrieves all comments for a specific post.
--   **Path Parameters**:
-    -   `postId` (Long, required): The ID of the post.
--   **Responses**:
-    -   `200 OK`: Successfully retrieved the comments.
-        ```json
-        {
-          "code": 200,
-          "message": "success",
-          "data": [
-            {
-              "id": 1,
-              "postId": 1,
-              "userId": 1,
-              "content": "This is a comment.",
-              "parentId": null,
-              "createdAt": "2023-01-01T12:00:00"
-            }
-            // ... more Comment objects
-          ]
-        }
-        ```
-    -   `400 Bad Request`: No comments found for the post.
-        ```json
-        {
-          "code": 400,
-          "message": "该文章暂无评论",
-          "data": null
-        }
-        ```
+-   **功能**: 将一篇指定的草稿发布为公开文章。
+-   **URL**: `/api/posts/{id}/publish`
+-   **方法**: `PUT`
+-   **请求体**: 无
+-   **成功响应 (200 OK)**:
+    ```json
+    {
+      "code": 200,
+      "msg": "success",
+      "data": null
+    }
+    ```
+-   **失败响应 (权限不足)**:
+    ```json
+    {
+      "code": 500,
+      "msg": "权限不足，无法发布此文章",
+      "data": null
+    }
+    ```
+
+### **2.7 删除文章**
+
+-   **功能**: 根据 ID 删除一篇文章（或草稿）。
+-   **URL**: `/api/posts/{id}`
+-   **方法**: `DELETE`
+
+---
+
+## **3. 可拓展的功能接口 (预留)**
+
+以下是为未来功能预留的接口，当前尚未实现，可作为后续开发方向。
+
+### **3.1 分类模块 (`/api/categories`)**
+
+-   `GET /api/categories`: 获取所有分类的列表。
+-   `GET /api/categories/{id}/posts`: 获取某个分类下的所有已发布文章。
+-   `POST /api/categories`: (管理员) 创建新分类。
+-   `PUT /api/categories/{id}`: (管理员) 更新分类信息。
+-   `DELETE /api/categories/{id}`: (管理员) 删除分类。
+
+### **3.2 标签模块 (`/api/tags`)**
+
+-   `GET /api/tags`: 获取所有标签的列表（可用于标签云）。
+-   `GET /api/tags/{tagName}/posts`: 获取带有某个标签的所有已发布文章。
+-   `PUT /api/posts/{id}/tags`: 为指定文章批量设置标签，请求体为 `["Java", "Spring"]`。
+
+### **3.3 评论模块 (`/api/comments`)**
+
+-   `GET /api/posts/{postId}/comments`: 获取一篇文章的所有评论（可分页）。
+-   `POST /api/posts/{postId}/comments`: (用户) 为文章添加新评论。
+-   `DELETE /api/comments/{id}`: (用户/管理员) 删除一条评论。
+
+### **3.4 用户模块 (`/api/users`)**
+
+-   `GET /api/users/me`: 获取当前登录用户的详细信息（如邮箱、头像、简介等）。
+-   `PUT /api/users/me`: 更新当前用户的信息。
+-   `GET /api/users/{id}`: 获取任一用户的公开信息（用于展示作者主页）。
+
+### **3.5 搜索模块 (`/api/search`)**
+
+-   `GET /api/search?q={keyword}`: 根据关键词在所有已发布的文章中进行全文搜索。

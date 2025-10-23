@@ -2,10 +2,12 @@ package com.personal.personal_blog.controller;
 
 import com.personal.personal_blog.entity.Post;
 import com.personal.personal_blog.entity.Result;
+import com.personal.personal_blog.entity.User;
 import com.personal.personal_blog.service.ArticleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,6 +38,12 @@ public class ArticleController {
         //查询文章列表
         List<Post> postList = articleService.getArticleList(page, size, sort, categoryId, tagName);
         //响应：200 OK
+        return Result.success(postList);
+    }
+    //查询我的文章列表，可选查询参数：?isPublished=true
+    @GetMapping("/my")
+    public Result getMyArticles(@RequestParam(value = "isPublished", required = false) Boolean isPublished) {
+        List<Post> postList = articleService.getMyArticles(isPublished);
         return Result.success(postList);
     }
 
@@ -72,6 +80,21 @@ public class ArticleController {
             return Result.error("更新失败");
         }
         return Result.success(); // 建议返回更新后的对象或成功状态
+    }
+
+    @PutMapping("/{id}/publish")
+    public Result publishArticle(@PathVariable Integer id) {
+        try {
+            int affectedRows = articleService.publishArticle(id);
+            if (affectedRows == 0) {
+                return Result.error("发布失败，文章可能不存在或状态未改变");
+            }
+            return Result.success();
+        } catch (AccessDeniedException e) {
+            return Result.error("权限不足，无法发布此文章");
+        } catch (RuntimeException e) {
+            return Result.error(e.getMessage());
+        }
     }
 
     //DELETE /{id}：删除文章
