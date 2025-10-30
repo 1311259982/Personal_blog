@@ -19,17 +19,24 @@ public interface ArticleMapper {
 
     // 查询文章列表
     @Select("<script>" +
-            "SELECT * FROM post " +
-            "WHERE is_published = true " +
-            "<if test=\'categoryId != null\'>" +
-            "AND category_id = #{categoryId} " +
+            "SELECT p.*, u.username as author_name " +
+            "FROM post p " +
+            "LEFT JOIN user u ON p.user_id = u.id " +
+            "WHERE p.is_published = true " +
+            "<if test='categoryId != null'>" +
+            "AND p.category_id = #{categoryId} " +
             "</if>" +
-            "<if test=\'tagName != null\'>" +
-            "AND tag_name = #{tagName} " +
+            "<if test='tagName != null'>" +
+            "AND p.tag_name = #{tagName} " + // 假设此列在 post 表中
             "</if>" +
             "ORDER BY " +
-            "<if test=\'sort != null\'>" +
-            "#{sort} " +
+            "<if test='sort != null'>" +
+            // [修复] 将 Java 字段名 'createdAt' 手动替换为 SQL 列名 'created_at'
+            "p.${sort.replace(',', ' ').replace('createdAt', 'created_at')} " +
+            "</if>" +
+            "<if test='sort == null'>" +
+            // [修复] 默认排序也使用 SQL 列名
+            "p.created_at DESC " +
             "</if>" +
             "LIMIT #{page}, #{size}" +
             "</script>")

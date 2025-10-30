@@ -8,6 +8,7 @@ import java.util.Date;
 public class Post {
     private Long id;
     private Long userId;
+    private String authorName;
     private String title;
     private String content;
     private String slug;
@@ -15,4 +16,6 @@ public class Post {
     private Boolean isPublished;
     private Date createdAt;
     private Date updatedAt;
+
+
 }
