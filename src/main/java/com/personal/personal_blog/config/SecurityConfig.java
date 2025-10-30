@@ -1,6 +1,7 @@
 package com.personal.personal_blog.config;
 
 import com.personal.personal_blog.component.JwtAuthenticationFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +28,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .exceptionHandling(ex -> ex
+                        // 明确指定认证入口点，在需要认证时返回 401
+                        .authenticationEntryPoint((request, response, authException) ->
+                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "未认证")
+                        )
+                )
                 // 禁用 CSRF
                 .csrf(csrf -> csrf.disable())
                 // 配置请求授权规则
